@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block title %}글 편집{% endblock %}
+{% block page_title %}✏️ 글 편집{% endblock %}
+
+{% block page_actions %}
+<a href="{{ url_for('manage_drafts') }}" class="btn btn-secondary btn-sm">← 목록으로</a>
+{% endblock %}
+
+{% block content %}
+<div class="grid-2">
+    <!-- 편집 폼 -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">📝 글 수정</h3>
+        </div>
+
+        <form method="POST" action="{{ url_for('update_draft', draft_id=draft.id) }}" id="editForm">
+            <div class="form-group">
+                <label class="form-label">제목</label>
+                <input type="text" name="title" class="form-input" value="{{ draft.title }}" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">키워드</label>
+                <input type="text" name="keyword" class="form-input" value="{{ draft.keyword or '' }}">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">태그 (쉼표로 구분)</label>
+                <input type="text" name="tags" class="form-input"
+                    value="{{ draft.tags | join(', ') if draft.tags else '' }}">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">본문</label>
+                <textarea name="content" class="form-input" rows="20" required>{{ draft.content }}</textarea>
+            </div>
+
+            <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                <button type="submit" class="btn btn-primary" style="flex: 1;">💾 저장</button>
+
+                <button type="button" class="btn btn-secondary" style="flex: 1;"
+                    onclick="document.getElementById('scheduleModal').style.display='flex'">
+                    ⏰ 발행예약
+                </button>
+
+                <button type="button" class="btn btn-primary" style="flex: 1;" onclick="publishNow()">
+                    🚀 즉시 발행
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- 미리보기 -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">👁️ 미리보기</h3>
+        </div>
+        <div class="preview-box" id="previewBox">{{ draft.content }}</div>
+    </div>
+</div>
+
+<!-- 발행예약 모달 -->
+<div id="scheduleModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; 
+     background:rgba(0,0,0,0.7); backdrop-filter:blur(5px); z-index:1000; align-items:center; justify-content:center;">
+    <div class="card" style="max-width:420px; width:90%;">
+        <div class="card-header">
+            <h3 class="card-title">⏰ 발행 예약 설정</h3>
+            <button class="btn-icon" onclick="document.getElementById('scheduleModal').style.display='none'">✕</button>
+        </div>
+        <form method="POST" action="{{ url_for('schedule_from_draft', draft_id=draft.id) }}">
+            <div class="form-group">
+                <label class="form-label">발행 시간</label>
+                <input type="datetime-local" name="schedule_time" class="form-input" required>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block" onclick="showLoading('⏰ 예약 등록 중...')">
+                ⏰ 예약 등록
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // 본문 변경 시 미리보기 업데이트
+    const contentArea = document.querySelector('textarea[name="content"]');
+    const previewBox = document.getElementById('previewBox');
+    if (contentArea && previewBox) {
+        contentArea.addEventListener('input', function () {
+            previewBox.textContent = this.value;
+        });
+    }
+
+    function publishNow() {
+        if (!confirm('즉시 발행하시겠습니까?')) return;
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '{{ url_for("publish_draft", draft_id=draft.id) }}';
+        document.body.appendChild(form);
+        showLoading('🚀 네이버 블로그에 발행 중...');
+        form.submit();
+    }
+</script>
+{% endblock %}

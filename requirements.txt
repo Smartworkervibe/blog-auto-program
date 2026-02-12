@@ -1,0 +1,36 @@
+# 🐟 블로그 자동화 프로그램 의존성
+# AI APIs
+openai>=1.0.0
+google-generativeai>=0.3.0
+
+# Web Automation
+selenium>=4.15.0
+webdriver-manager>=4.0.0
+playwright>=1.40.0
+
+# HTTP & API
+requests>=2.31.0
+aiohttp>=3.9.0
+
+# Web Framework (Dashboard)
+flask>=3.0.0
+flask-cors>=4.0.0
+
+# Data Processing
+beautifulsoup4>=4.12.0
+lxml>=4.9.0
+pandas>=2.1.0
+
+# Image Processing
+pillow>=10.1.0
+
+# Utilities
+python-dotenv>=1.0.0
+schedule>=1.2.0
+pyperclip>=1.8.0
+
+# Database
+sqlalchemy>=2.0.0
+
+# Task Scheduling
+apscheduler>=3.10.0

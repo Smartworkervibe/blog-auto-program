@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}발행 이력{% endblock %}
+{% block page_title %}📋 발행 이력{% endblock %}
+
+{% block content %}
+{% if history_list %}
+<div class="card">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>제목</th>
+                <th>발행일</th>
+                <th>방식</th>
+                <th>상태</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for h in history_list %}
+            <tr>
+                <td style="font-weight: 600;">
+                    {% if h.post_url %}
+                    <a href="{{ h.post_url }}" target="_blank">{{ h.title[:50] }}{% if h.title|length > 50 %}...{% endif
+                        %}</a>
+                    {% else %}
+                    {{ h.title[:50] }}{% if h.title|length > 50 %}...{% endif %}
+                    {% endif %}
+                </td>
+                <td class="text-sm">{{ h.published_at[:16] }}</td>
+                <td class="text-sm">
+                    {% if h.source == 'scheduled' %}
+                    <span class="badge badge-info">⏰ 예약</span>
+                    {% elif h.source == 'direct' %}
+                    <span class="badge badge-success">🚀 즉시</span>
+                    {% else %}
+                    <span class="badge badge-info">{{ h.source }}</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if h.status == 'success' %}
+                    <span class="badge badge-success">✅ 성공</span>
+                    {% else %}
+                    <span class="badge badge-danger">❌ 실패</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="card">
+    <div class="empty-state">
+        <div class="empty-icon">📊</div>
+        <div class="empty-title">발행 이력이 없습니다</div>
+        <div class="empty-desc">첫 번째 글을 발행해보세요!</div>
+        <a href="{{ url_for('generate') }}" class="btn btn-primary mt-2">✍️ 글 생성하기</a>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

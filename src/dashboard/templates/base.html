@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}블로그 자동화{% endblock %} | 🐟 코다리 부장</title>
+    <meta name="description" content="AI 기반 네이버 블로그 자동화 프로그램">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        body {
+            font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+
+<body>
+    {% if session.get('naver_id') %}
+    <div class="app-layout">
+        <!-- 사이드바 -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-brand">
+                <div class="sidebar-brand-title">🐟 블로그 자동화</div>
+                <div class="sidebar-brand-sub">by 코다리 부장</div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="{{ url_for('dashboard') }}"
+                    class="nav-item {% if request.endpoint == 'dashboard' %}active{% endif %}">
+                    <span class="nav-icon">📊</span> 대시보드
+                </a>
+                <a href="{{ url_for('generate') }}"
+                    class="nav-item {% if request.endpoint == 'generate' %}active{% endif %}">
+                    <span class="nav-icon">✍️</span> 글 생성
+                </a>
+                <a href="{{ url_for('manage_drafts') }}"
+                    class="nav-item {% if request.endpoint == 'manage_drafts' %}active{% endif %}">
+                    <span class="nav-icon">💾</span> 임시저장
+                </a>
+                <a href="{{ url_for('manage_schedule') }}"
+                    class="nav-item {% if request.endpoint == 'manage_schedule' %}active{% endif %}">
+                    <span class="nav-icon">⏰</span> 발행예약
+                </a>
+                <a href="{{ url_for('history') }}"
+                    class="nav-item {% if request.endpoint == 'history' %}active{% endif %}">
+                    <span class="nav-icon">📋</span> 발행이력
+                </a>
+                <a href="{{ url_for('neighbors') }}"
+                    class="nav-item {% if request.endpoint == 'neighbors' %}active{% endif %}">
+                    <span class="nav-icon">🤝</span> 이웃 관리
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="user-avatar">{{ session.get('naver_id', '?')[0].upper() }}</div>
+                    <div>
+                        <div class="user-name">{{ session.get('naver_id', '사용자') }}</div>
+                        <div class="user-id">
+                            <a href="{{ url_for('logout') }}"
+                                style="color: var(--text-muted); font-size: 0.72rem;">로그아웃</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- 메인 콘텐츠 -->
+        <main class="main-content">
+            <header class="page-header">
+                <h1 class="page-title">{% block page_title %}대시보드{% endblock %}</h1>
+                <div class="flex-gap">
+                    {% block page_actions %}{% endblock %}
+                </div>
+            </header>
+
+            <div class="page-body">
+                <!-- Flash 메시지 -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">
+                    {{ message }}
+                </div>
+                {% endfor %}
+                {% endif %}
+                {% endwith %}
+
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+    </div>
+    {% else %}
+    {% block full_content %}{% endblock %}
+    {% endif %}
+
+    <!-- 로딩 오버레이 -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+        <div class="loading-text" id="loadingText">처리 중...</div>
+    </div>
+
+    <script>
+        function showLoading(text) {
+            document.getElementById('loadingOverlay').classList.add('active');
+            if (text) document.getElementById('loadingText').textContent = text;
+        }
+        function hideLoading() {
+            document.getElementById('loadingOverlay').classList.remove('active');
+        }
+    </script>
+    {% block extra_scripts %}{% endblock %}
+</body>
+
+</html>

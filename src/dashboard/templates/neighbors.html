@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}이웃 관리{% endblock %}
+{% block page_title %}🤝 이웃 관리 자동화{% endblock %}
+
+{% block content %}
+<div class="grid-2">
+    <!-- 이웃 새글 방문 -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">❤️ 이웃 새글 방문 & 공감</h3>
+        </div>
+        <p style="color: var(--text-secondary); margin-bottom: 20px;">
+            서로이웃의 새 글을 자동으로 방문하고 체류 시간을 가집니다.<br>
+            소통 지수를 높여 블로그 평판을 관리하세요.
+        </p>
+
+        <form method="POST" action="{{ url_for('visit_neighbors') }}"
+            onsubmit="showLoading('❤️ 이웃 블로그를 방문 중입니다... (AI 댓글 생성 시 시간이 더 소요됩니다)')">
+
+            <div class="form-group">
+                <label class="form-label">활동 모드</label>
+                <div
+                    style="display: flex; gap: 15px; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px;">
+                    <label style="cursor: pointer; display: flex; align-items: center;">
+                        <input type="radio" name="mode" value="like" checked style="margin-right: 8px;">
+                        ❤️ 공감만 (빠름)
+                    </label>
+                    <label style="cursor: pointer; display: flex; align-items: center;">
+                        <input type="radio" name="mode" value="like_comment" style="margin-right: 8px;">
+                        💬 공감 + AI 댓글 (평판 UP!)
+                    </label>
+                </div>
+                <small style="color: var(--text-secondary); display: block; margin-top: 5px;">
+                    * AI 댓글은 본문을 읽고 진심 어린 내용을 자동 작성합니다.
+                </small>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">방문할 이웃 수</label>
+                <select name="count" class="form-select">
+                    <option value="3">3명 (테스트용)</option>
+                    <option value="5" selected>5명 (약 1~2분 소요)</option>
+                    <option value="10">10명 (약 3~5분 소요)</option>
+                    <option value="20">20명 (대량 작업)</option>
+                </select>
+            </div>
+
+            <div class="alert alert-info">
+                ℹ️ <strong>안전 모드 작동 중</strong><br>
+                과도한 활동을 방지하기 위해 랜덤 체류 시간을 가집니다.<br>
+                댓글은 짧고 자연스러운 문장으로 작성됩니다.
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block">
+                🚀 자동 소통 시작하기
+            </button>
+        </form>
+    </div>
+
+    <!-- 서로이웃 수락 -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">🤝 서로이웃 신청 관리</h3>
+        </div>
+        <p style="color: var(--text-secondary); margin-bottom: 20px;">
+            대기 중인 서로이웃 신청을 모두 확인하고 <strong>일괄 수락</strong>합니다.<br>
+            (모바일 웹 환경에서 안전하게 처리됩니다)
+        </p>
+
+        <form method="POST" action="{{ url_for('accept_neighbors') }}"
+            onsubmit="showLoading('🤝 신청 목록을 확인하고 수락 중입니다...')">
+            <button type="submit" class="btn btn-secondary btn-block">
+                ✅ 서로이웃 일괄 수락하기
+            </button>
+        </form>
+
+        <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border-color);">
+            <h4 style="font-size: 1rem; margin-bottom: 10px;">📊 이웃 활동 팁</h4>
+            <ul style="padding-left: 20px; color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6;">
+                <li>하루에 너무 많은 이웃을 추가하면 제한될 수 있습니다.</li>
+                <li>진정성 있는 댓글 소통이 지수에 더 도움이 됩니다.</li>
+                <li>오전 9시 ~ 10시 사이에 방문하는 것이 효과적입니다.</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

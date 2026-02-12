@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}발행예약 관리{% endblock %}
+{% block page_title %}⏰ 발행예약 관리{% endblock %}
+
+{% block content %}
+{% if scheduled %}
+<div class="card">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>제목</th>
+                <th>예약 시간</th>
+                <th>상태</th>
+                <th>작업</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for post in scheduled %}
+            <tr>
+                <td style="font-weight: 600;">
+                    {{ post.title[:50] }}{% if post.title|length > 50 %}...{% endif %}
+                </td>
+                <td class="text-sm">{{ post.scheduled_time[:16] }}</td>
+                <td>
+                    {% if post.status == 'pending' %}
+                    <span class="badge badge-warning">⏳ 대기</span>
+                    {% elif post.status == 'published' %}
+                    <span class="badge badge-success">✅ 발행</span>
+                    {% else %}
+                    <span class="badge badge-danger" title="{{ post.error_message or '' }}">❌ 실패</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if post.status == 'pending' %}
+                    <form method="POST" action="{{ url_for('cancel_schedule', post_id=post.id) }}"
+                        style="display:inline" onsubmit="return confirm('예약을 취소하시겠습니까?')">
+                        <button type="submit" class="btn btn-danger btn-sm">취소</button>
+                    </form>
+                    {% elif post.status == 'failed' %}
+                    <span class="text-muted text-sm">{{ post.error_message[:30] if post.error_message else '' }}</span>
+                    {% else %}
+                    <span class="text-muted text-sm">-</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="card">
+    <div class="empty-state">
+        <div class="empty-icon">📅</div>
+        <div class="empty-title">예약된 글이 없습니다</div>
+        <div class="empty-desc">글을 생성하고 발행 예약을 설정해보세요!</div>
+        <a href="{{ url_for('generate') }}" class="btn btn-primary mt-2">✍️ 글 생성하기</a>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

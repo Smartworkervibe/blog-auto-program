@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+
+{% block title %}글 생성{% endblock %}
+{% block page_title %}✍️ AI 글 생성{% endblock %}
+
+{% block content %}
+<div class="grid-2">
+    <!-- 왼쪽: 입력 폼 -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">📝 글 설정</h3>
+        </div>
+
+        <form method="POST" action="{{ url_for('generate') }}" id="generateForm">
+            <div class="form-group">
+                <label class="form-label">글 주제 *</label>
+                <input type="text" name="topic" class="form-input" placeholder="예: 사무실 복합기 선택 방법"
+                    value="{{ request.form.get('topic', '') }}" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">타겟 키워드 *</label>
+                <input type="text" name="keyword" class="form-input" placeholder="예: 복합기 렌탈 추천"
+                    value="{{ request.form.get('keyword', '') }}" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">페르소나</label>
+                <select name="persona" class="form-select">
+                    <option value="lifestyle_blogger" {% if request.form.get('persona')=='lifestyle_blogger'
+                        %}selected{% endif %}>
+                        😊 라이프스타일 블로거
+                    </option>
+                    <option value="rental_expert" {% if request.form.get('persona')=='rental_expert' %}selected{% endif
+                        %}>
+                        🏢 렌탈 전문가
+                    </option>
+                    <option value="tech_reviewer" {% if request.form.get('persona')=='tech_reviewer' %}selected{% endif
+                        %}>
+                        💻 테크 리뷰어
+                    </option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" style="cursor: pointer;">
+                    <input type="checkbox" name="humanize" value="1" checked> 🧠 휴먼터치 적용
+                </label>
+            </div>
+
+            <label class="form-label" style="cursor: pointer;">
+                <input type="checkbox" name="add_images" value="1" checked> 🖼️ 이미지 자동 첨부 (3장)
+            </label>
+            <div style="margin-left: 20px; margin-top: 5px; font-size: 0.9em; color: var(--text-secondary);">
+                <label style="margin-right: 15px; cursor: pointer;">
+                    <input type="radio" name="image_source" value="auto" checked> 🆓 무료 이미지 (Pexels)
+                </label>
+                <label style="cursor: pointer;">
+                    <input type="radio" name="image_source" value="dalle"> 🎨 AI 생성 (DALL-E 3)
+                </label>
+            </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary btn-block btn-lg" onclick="showLoading('🤖 AI가 글을 생성하고 있습니다...')">
+        🚀 글 생성하기
+    </button>
+    </form>
+</div>
+
+<!-- 오른쪽: 미리보기 -->
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">👁️ 미리보기</h3>
+        {% if result %}
+        <span class="badge badge-info">{{ result.content|length }}자</span>
+        {% endif %}
+    </div>
+
+    {% if result %}
+    <div style="margin-bottom: 1rem;">
+        <h2 style="color: var(--accent-primary); font-size: 1.1rem; margin-bottom: 0.5rem;">
+            {{ result.title }}
+        </h2>
+        <div class="flex-gap" style="flex-wrap: wrap; gap: 0.3rem;">
+            {% for tag in result.tags %}
+            <span class="badge badge-info">#{{ tag }}</span>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="preview-box" id="previewContent">{{ result.content }}</div>
+
+    <!-- 액션 버튼 -->
+    <div style="margin-top: 1.25rem; display: flex; gap: 0.75rem; flex-wrap: wrap;">
+        <!-- 임시저장 -->
+        <form method="POST" action="{{ url_for('save_draft_from_generate') }}" style="flex: 1;">
+            <input type="hidden" name="title" value="{{ result.title }}">
+            <input type="hidden" name="content" value="{{ result.content }}">
+            <input type="hidden" name="tags" value="{{ result.tags | join(',') }}">
+            <input type="hidden" name="keyword" value="{{ request.form.get('keyword', '') }}">
+            <input type="hidden" name="persona" value="{{ request.form.get('persona', 'lifestyle_blogger') }}">
+            <button type="submit" class="btn btn-secondary btn-block">💾 임시저장</button>
+        </form>
+
+        <!-- 발행예약 -->
+        <form method="POST" action="{{ url_for('schedule_from_generate') }}" style="flex: 1.5;"
+            onsubmit="return validateSchedule()">
+            <input type="hidden" name="title" value="{{ result.title }}">
+            <input type="hidden" name="content" value="{{ result.content }}">
+            <input type="hidden" name="tags" value="{{ result.tags | join(',') }}">
+            <div style="display: flex; gap: 0.5rem;">
+                <input type="datetime-local" name="schedule_time" class="form-input" id="scheduleTime" style="flex: 1;"
+                    required>
+                <button type="submit" class="btn btn-secondary">⏰ 예약</button>
+            </div>
+        </form>
+
+        <!-- 즉시 발행 -->
+        <form method="POST" action="{{ url_for('publish_now') }}" style="flex: 1;"
+            onsubmit="showLoading('🚀 네이버 블로그에 발행 중...')">
+            <input type="hidden" name="title" value="{{ result.title }}">
+            <input type="hidden" name="content" value="{{ result.content }}">
+            <input type="hidden" name="tags" value="{{ result.tags | join(',') }}">
+            <button type="submit" class="btn btn-primary btn-block">🚀 즉시 발행</button>
+        </form>
+    </div>
+
+    {% if scores %}
+    <div style="margin-top: 1.25rem; padding: 1rem; background: var(--bg-input); border-radius: var(--radius-sm);">
+        <div style="font-size: 0.85rem; font-weight: 700; margin-bottom: 0.75rem;">📊 품질 점수: {{ scores.total }}/100
+        </div>
+        {% for name, detail in scores.details.items() %}
+        <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 0.3rem;">
+            <span class="text-muted">{{ name }}</span>
+            <span>{{ detail.score }}/{{ detail.max }}</span>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-icon">✨</div>
+        <div class="empty-title">글을 생성해보세요!</div>
+        <div class="empty-desc">주제와 키워드를 입력하고 생성 버튼을 누르세요.<br>AI가 자동으로 블로그 글을 작성합니다.</div>
+    </div>
+    {% endif %}
+</div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    function validateSchedule() {
+        const dt = document.getElementById('scheduleTime').value;
+        if (!dt) {
+            alert('발행 예약 시간을 설정해주세요.');
+            return false;
+        }
+        const selected = new Date(dt);
+        const now = new Date();
+        if (selected <= now) {
+            alert('예약 시간은 현재 시간 이후여야 합니다.');
+            return false;
+        }
+        showLoading('⏰ 발행 예약 등록 중...');
+        return true;
+    }
+</script>
+{% endblock %}

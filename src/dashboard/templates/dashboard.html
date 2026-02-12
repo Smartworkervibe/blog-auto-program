@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+
+{% block title %}대시보드{% endblock %}
+{% block page_title %}📊 대시보드{% endblock %}
+
+{% block page_actions %}
+<a href="{{ url_for('generate') }}" class="btn btn-primary">✍️ 새 글 생성</a>
+{% endblock %}
+
+{% block content %}
+<!-- 통계 카드 -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon drafts">💾</div>
+        <div>
+            <div class="stat-value">{{ stats.draft_count }}</div>
+            <div class="stat-label">임시저장</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon scheduled">⏰</div>
+        <div>
+            <div class="stat-value">{{ stats.scheduled_count }}</div>
+            <div class="stat-label">발행 예약</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon published">✅</div>
+        <div>
+            <div class="stat-value">{{ stats.published_count }}</div>
+            <div class="stat-label">총 발행</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon today">🔥</div>
+        <div>
+            <div class="stat-value">{{ stats.today_count }}</div>
+            <div class="stat-label">오늘 발행</div>
+        </div>
+    </div>
+</div>
+
+<div class="grid-2">
+    <!-- 최근 임시저장 -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">💾 최근 임시저장</h3>
+            <a href="{{ url_for('manage_drafts') }}" class="btn btn-secondary btn-sm">전체보기</a>
+        </div>
+        {% if drafts %}
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>제목</th>
+                    <th>수정일</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for draft in drafts[:5] %}
+                <tr>
+                    <td>
+                        <a href="{{ url_for('edit_draft', draft_id=draft.id) }}">
+                            {{ draft.title[:40] }}{% if draft.title|length > 40 %}...{% endif %}
+                        </a>
+                    </td>
+                    <td class="text-muted text-sm">{{ draft.updated_at[:16] }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">📝</div>
+            <div class="empty-title">임시저장된 글이 없습니다</div>
+            <div class="empty-desc">글 생성에서 새 글을 만들어보세요!</div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- 예약 발행 현황 -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">⏰ 예약 발행 현황</h3>
+            <a href="{{ url_for('manage_schedule') }}" class="btn btn-secondary btn-sm">전체보기</a>
+        </div>
+        {% if scheduled %}
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>제목</th>
+                    <th>예약 시간</th>
+                    <th>상태</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for post in scheduled[:5] %}
+                <tr>
+                    <td>{{ post.title[:30] }}{% if post.title|length > 30 %}...{% endif %}</td>
+                    <td class="text-sm">{{ post.scheduled_time[:16] }}</td>
+                    <td>
+                        {% if post.status == 'pending' %}
+                        <span class="badge badge-warning">⏳ 대기</span>
+                        {% elif post.status == 'published' %}
+                        <span class="badge badge-success">✅ 발행</span>
+                        {% else %}
+                        <span class="badge badge-danger">❌ 실패</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">📅</div>
+            <div class="empty-title">예약된 글이 없습니다</div>
+            <div class="empty-desc">글을 생성하고 발행 예약을 설정해보세요!</div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- 최근 발행 이력 -->
+<div class="card mt-3">
+    <div class="card-header">
+        <h3 class="card-title">📋 최근 발행 이력</h3>
+        <a href="{{ url_for('history') }}" class="btn btn-secondary btn-sm">전체보기</a>
+    </div>
+    {% if history_list %}
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>제목</th>
+                <th>발행일</th>
+                <th>방식</th>
+                <th>상태</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for h in history_list[:5] %}
+            <tr>
+                <td>{{ h.title[:50] }}{% if h.title|length > 50 %}...{% endif %}</td>
+                <td class="text-sm">{{ h.published_at[:16] }}</td>
+                <td class="text-sm">
+                    {% if h.source == 'scheduled' %}⏰ 예약{% elif h.source == 'direct' %}🚀 즉시{% else %}{{ h.source }}{%
+                    endif %}
+                </td>
+                <td>
+                    {% if h.status == 'success' %}
+                    <span class="badge badge-success">성공</span>
+                    {% else %}
+                    <span class="badge badge-danger">실패</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-icon">📊</div>
+        <div class="empty-title">발행 이력이 없습니다</div>
+        <div class="empty-desc">첫 번째 글을 발행해보세요!</div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
